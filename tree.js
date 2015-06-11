@@ -12,15 +12,11 @@ module.exports = function timestamp(Model) {
     Model.observe('before save', function event(ctx, next) {
             //TODO: We need check if the lft and rgt properties was changed. We should not allow that
 
+            //sometimes this function will save others instances and will
+            //add the __treeDoNothing option. If so, we must do nothing
+            if (ctx.options.__treeDoNothing) return next();
+
             if (ctx.instance) { //update
-                //sometimes this function will save others instances and will
-                //add the __treeDoNothing property. If so, we must call next and
-                //do nothing
-                if (ctx.instance.__treeDoNothing) {
-                    delete ctx.instance.__treeDoNothing;
-                    next();
-                    return;
-                }
                 if (ctx.instance.id) {
                     ctx.Model.findById(ctx.instance.id, function (err, oldInstance) {
                         //check if the parent changes
@@ -197,10 +193,9 @@ function updateMultiples(model, where, change) {
         var parallel = [];
         results.forEach(function (result) {
             parallel.push(function () {
-                return result.save.apply(result, arguments);
+                return result.save.apply(result, [{__treeDoNothing:true}, arguments[0]]);
             });
             change(result);
-            result.__treeDoNothing = true;
         });
         async.parallel(parallel, function (err) {
             if (err) return deferred.reject(err);
