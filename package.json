@@ -1,0 +1,24 @@
+{
+  "name": "loopback-tree-mixin",
+  "version": "0.0.1",
+  "description": "A mixin to transform a model in a tree model",
+  "main": "index.js",
+  "scripts": {},
+  "keywords": [
+    "loopback",
+    "strongloop"
+  ],
+  "author": "Cristiano Benjamin",
+  "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/csbenjamin/loopback-tree-mixin.git"
+  },
+  "dependencies": {
+    "debug": "2.x",
+    "q": "^1.4.1"
+  },
+  "devDependencies": {
+    "loopback": "2.x"
+  }
+}
