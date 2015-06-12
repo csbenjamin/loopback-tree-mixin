@@ -8,6 +8,48 @@ module.exports = function timestamp(Model) {
     Model.defineProperty('rgt', {type: Number, required: true});
     Model.belongsTo(Model, {foreignKey: 'parentId', as: 'parent'});
 
+    Model.observe('before delete', function (ctx, next) {
+
+        if (ctx.where.__treeDoNothing) {
+            delete ctx.where.__treeDoNothing;
+            return next();
+        }
+
+        ctx.Model.find({where: ctx.where}, function (err, results) {
+            var parallel = [];
+            results.forEach(function (result) {
+                var myRgt = result.rgt;
+                var myWidth = result.rgt - result.lft + 1;
+                parallel.push(function (cb) {
+                    ctx.Model.destroyAll({
+                        lft: {gt: result.lft - 1},
+                        rgt: {lt: result.rgt + 1},
+                        __treeDoNothing: true
+                    }, function () {
+                        //close hole left behind
+                        updateMultiples(ctx.Model, {where: {lft: {gt: myRgt}}}, function (result) {
+                            result.lft -= myWidth;
+
+                        }).then(function () {
+                            //Close hole left behind
+                            return updateMultiples(ctx.Model, {where: {rgt: {gt: myRgt}}}, function (result) {
+                                result.rgt -= myWidth;
+                            });
+                        }).catch(function(err){
+                            console.log(err);
+                        }).done(function(){
+                            cb();
+                        })
+                    });
+                });
+            });
+            async.parallel(parallel, function (err) {
+                if(err) console.log(err);
+                next();
+            });
+        });
+
+    });
 
     Model.observe('before save', function event(ctx, next) {
             //TODO: We need check if the lft and rgt properties was changed. We should not allow that
@@ -87,6 +129,7 @@ module.exports = function timestamp(Model) {
                                     order: 'rgt DESC',
                                     limit: 1
                                 }, function (err, results) {
+
                                     var newLft = results[0].rgt + 1;
                                     var myLft = ctx.instance.lft;
                                     var myRgt = ctx.instance.rgt;
@@ -193,7 +236,7 @@ function updateMultiples(model, where, change) {
         var parallel = [];
         results.forEach(function (result) {
             parallel.push(function () {
-                return result.save.apply(result, [{__treeDoNothing:true}, arguments[0]]);
+                return result.save.apply(result, [{__treeDoNothing: true}, arguments[0]]);
             });
             change(result);
         });
@@ -201,6 +244,24 @@ function updateMultiples(model, where, change) {
             if (err) return deferred.reject(err);
             deferred.resolve();
         });
+    });
+
+    return deferred.promise;
+}
+
+function destroyChildren(Model, instances, cb) {
+    var deferred = Q.defer();
+
+    var parallel = [];
+    instances.forEach(function (instance) {
+        parallel.push(function () {
+            Model.destroyAll({parentId: instance.id}, arguments[0]);
+        });
+    });
+    async.parallel(parallel, function (err) {
+        if (err) return deferred.reject(err);
+        deferred.resolve();
+        if (cb) cb();
     });
 
     return deferred.promise;

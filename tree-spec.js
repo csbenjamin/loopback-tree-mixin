@@ -23,12 +23,12 @@ describe('loopback datasource tree', function () {
     beforeEach(function (done) {
         Category.destroyAll(done);
     });
-    //afterEach(function (done) {
-    //    Category.find({}, function (err, results) {
-    //        console.log('\nall data after it\n', results);
-    //        done();
-    //    })
-    //});
+    afterEach(function (done) {
+        Category.find({}, function (err, results) {
+            console.log('\nall data after it\n', results);
+            done();
+        });
+    });
     it('create some categories and check the lft and rgt properties', function (done) {
         var p = new pp(done);
         Category.create({name: 'Food'}, p.add(function (err, food) {
@@ -98,7 +98,31 @@ describe('loopback datasource tree', function () {
             }))
 
         }));
-    })
+    });
+
+    it('destroy node', function (done) {
+        var p = new pp(done);
+        Category.create({name: 'category 1'} , p.add(function (err, category1) {
+            Category.create({name: 'category 2', parentId:category1.id} , p.add(function () {
+                Category.create({name: 'category 3'} , p.add(function (err, category3) {
+                    Category.create({name: 'category 4'} , p.add(function (err, category4) {
+                        category1.destroy(p.add(function(){
+                            category3.reload(p.add(function(err, category3){
+                                category4.reload(p.add(function(err, category4){
+                                    expect(category3.lft).toBe(1);
+                                    expect(category3.rgt).toBe(2);
+                                    expect(category4.lft).toBe(3);
+                                    expect(category4.rgt).toBe(4);
+
+                                }))
+                            }))
+                        }));
+
+                    }));
+                }));
+            }));
+        }));
+    });
 });
 
 function pp(done) {
