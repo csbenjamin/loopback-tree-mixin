@@ -3,7 +3,7 @@ TREE
 
 This module is designed for the [Strongloop Loopback](https://github.com/strongloop/loopback) framework.  It adds `lft` and `rgt` attributes to any Model and a relations belongsTo to itself with name `parent`.
 
-This module is implemented with the `before save` [Operation Hook](http://docs.strongloop.com/display/public/LB/Operation+hooks#Operationhooks-beforesave) which is relatively new to the loopback framework so your loopback-datasource-juggler module must greater than version [2.23.0](0002aaedeffadda34ae03752d03d0805ab661665).
+This module is implemented with the `before save` [Operation Hook](http://docs.strongloop.com/display/public/LB/Operation+hooks#Operationhooks-beforesave) which is relatively new to the loopback framework so your loopback-datasource-juggler module must be greater than version [2.23.0](0002aaedeffadda34ae03752d03d0805ab661665).
 
 INSTALL
 =============
