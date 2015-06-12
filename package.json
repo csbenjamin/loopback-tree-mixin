@@ -1,6 +1,6 @@
 {
   "name": "loopback-tree-mixin",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "A mixin to transform a model in a tree model",
   "main": "index.js",
   "scripts": {},
