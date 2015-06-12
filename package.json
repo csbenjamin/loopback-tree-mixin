@@ -15,7 +15,6 @@
     "url": "https://github.com/csbenjamin/loopback-tree-mixin.git"
   },
   "dependencies": {
-    "debug": "2.x",
     "q": "^1.4.1"
   },
   "devDependencies": {
